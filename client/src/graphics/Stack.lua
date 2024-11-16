@@ -692,6 +692,35 @@ function Stack:drawLevel()
   end
 end
 
+function Stack:drawBattleAnimations()
+  for name, anim in pairs(self.battleAnimations) do
+    if not anim then break end
+    if not anim.playing then
+      anim:play()
+      anim:switchAnimation("intro")
+    end
+
+    local x = self:elementOriginX(false, false)
+    local y = self:elementOriginY(false, false)
+    if (not name:find("frame$")) then
+      x = self:elementOriginXWithOffset(themes[config.theme].battleAnimation_Pos, false)
+      y = self:elementOriginYWithOffset(themes[config.theme].battleAnimation_Pos, false)
+    end
+
+    local portraitMirror = 1
+    if self.which == 2 or not self.opponentStack then
+      portraitMirror = -1
+      if not self.opponentStack then
+        x = x + anim.animations[anim.currentAnim].frameSize.width * self.gfxScale
+      end
+    end
+
+    anim:switchFunction()
+    anim:update()
+    anim:draw(x, y, 0, self.gfxScale*portraitMirror, self.gfxScale)
+  end
+end
+
 function Stack:drawAnalyticData()
   if not config.enable_analytics or not self.drawsAnalytics then
     return
@@ -966,4 +995,13 @@ function Stack:drawPanels(garbageImages, shockGarbageImages, shakeOffset)
 
   panelSet:drawBatch()
   prof.pop("Stack:drawPanels")
+end
+
+function Stack:initializeGraphics()
+  self.multi_prestopQuad = GraphicsUtil:newRecycledQuad(0, 0, self.theme.images.IMG_multibar_prestop_bar:getDimensions())
+  self.multi_stopQuad = GraphicsUtil:newRecycledQuad(0, 0, self.theme.images.IMG_multibar_stop_bar:getDimensions())
+  self.multi_shakeQuad = GraphicsUtil:newRecycledQuad(0, 0, self.theme.images.IMG_multibar_shake_bar:getDimensions())
+  self.multiBarFrameCount = self:calculateMultibarFrameCount()
+
+  characters[self.character]:initializeStackAnimation(self)
 end

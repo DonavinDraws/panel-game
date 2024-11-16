@@ -256,10 +256,10 @@ Stack =
 
     s.warningsTriggered = {}
 
-    s.multi_prestopQuad = GraphicsUtil:newRecycledQuad(0, 0, s.theme.images.IMG_multibar_prestop_bar:getWidth(), s.theme.images.IMG_multibar_prestop_bar:getHeight(), s.theme.images.IMG_multibar_prestop_bar:getWidth(), s.theme.images.IMG_multibar_prestop_bar:getHeight())
-    s.multi_stopQuad = GraphicsUtil:newRecycledQuad(0, 0, s.theme.images.IMG_multibar_stop_bar:getWidth(), s.theme.images.IMG_multibar_stop_bar:getHeight(), s.theme.images.IMG_multibar_stop_bar:getWidth(), s.theme.images.IMG_multibar_stop_bar:getHeight())
-    s.multi_shakeQuad = GraphicsUtil:newRecycledQuad(0, 0, s.theme.images.IMG_multibar_shake_bar:getWidth(), s.theme.images.IMG_multibar_shake_bar:getHeight(), s.theme.images.IMG_multibar_shake_bar:getWidth(), s.theme.images.IMG_multibar_shake_bar:getHeight())
-    s.multiBarFrameCount = s:calculateMultibarFrameCount()
+    s:createSignal("matched")
+    s:createSignal("garbageLanded")
+
+    s:initializeGraphics()
   end,
   StackBase
 )
@@ -1215,6 +1215,7 @@ function Stack.simulate(self)
   if self.shake_time == 0 then
     self.peak_shake_time = 0
   end
+
   prof.pop("shake time updates")
 
   -- Phase 3. /////////////////////////////////////////////////////////////
@@ -1997,6 +1998,7 @@ function Stack.onGarbageLand(self, panel)
       -- to prevent from running this code dozens of time for the same garbage block
       -- all panels of a garbage block have the same id + shake time
       self.garbageLandedThisFrame[#self.garbageLandedThisFrame+1] = panel.garbageId
+      self:emitSignal("garbageLanded", self, panel.shake_time)
     end
 
     -- whether we ran through it or not, the panel should lose its shake time
